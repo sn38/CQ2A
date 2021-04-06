@@ -1,0 +1,86 @@
+.navbar{
+  padding: 13px;
+  font-size: 1.1em;
+}
+
+a:hover{
+  background-color : #494e54;
+}
+
+.contenuCommentçamarche{
+  font-style: italic;
+  font-size: 0.9em;
+}
+
+.DonneesAffichage{
+  padding: 50px 50px;
+  margin: 50px 50px;
+  font-family: Arial;
+  text-align: justify-all;
+  font-size: 1.5em;
+}
+
+.date{
+  font-size: 1.4em;
+  font-family: Arial;
+  padding: 30px 30px;
+  margin: 30px 30px;
+}
+
+h1{
+  font-size: 2.5em;
+  font-weight: bold;
+  font-family: Arial;
+  text-align: center;
+  color : #1b2635;
+  padding: 30px 30px;
+  margin: 30px 30px;
+}
+
+h2{
+  font-family: Arial;
+  font-size: 1.3em;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.conteneur {
+  display: flex;
+  flex-direction: column;
+  background-color: #e5ebf3;
+}
+
+.table{
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.Indicateur{
+  text-align: center;
+  font-family: arial;
+  font-size: 2.5em;
+  font-weight: bold;
+}
+
+.MoyenneIndicateur{
+  color : orange;
+}
+
+.MauvaiseIndicateur{
+  color : red;
+}
+
+.BonneIndicateur{
+  color : green;
+}
+
+p {
+    padding: 20px 20px;
+    margin: 25px 25px;
+    font-family: Arial;
+    text-align: justify;
+    font-size: 1.1em;
+}
+
+
