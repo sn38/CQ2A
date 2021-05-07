@@ -1,0 +1,45 @@
+
+a:hover{
+  background-color : #494e54;
+}
+
+h1{
+  font-size: 2.5em;
+  font-weight: bold;
+  font-family: Arial;
+  text-align: center;
+  color : #1b2635;
+  padding: 30px 30px;
+  margin: 30px 30px;
+}
+
+h2{
+  font-family: Arial;
+  font-size: 1.3em;
+  font-style: italic;
+  font-weight: bold;
+  border-width:3px;
+ border-style:double;
+ border-color:black;
+}
+
+
+p {
+  background-color : #005C96;
+  color: white;
+    padding: 20px 20px;
+    margin: 25px 25px;
+    font-family: Arial;
+    text-align: justify;
+    font-size: 1.1em;
+}
+
+.Sitewebtechnicien{
+  background-color : #494e54;
+  color: white;
+  padding: 50px 50px;
+  margin: 50px 50px;
+  font-family: Arial;
+  text-align: justify-all;
+  font-size: 1.5em;
+}
