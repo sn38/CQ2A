@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="style.css" />
+        <title>Paragraphes</title>
+    </head>
+
+    <h1 class="Sitewebtechnicien"> Site web technicien </h1>
+
+    <body>
+    	<form method="POST" action=form_envoi.php>
+
+    <h2>Réglage de l'afficheur écran LCD </h2>
+   <p>
+       <label for="position">Position Du texte</label><br />
+       <select name="position" id="position">
+           <option value="gauche">Gauche</option>
+           <option value="centre">Centre</option>
+            <var>Valeur_Police</var>
+       </select>
+   </p>
+
+    <p>
+       <label for="defilement">Défilement</label><br />
+       	<select name="defilement" id="defilement">
+	           <option value="1">Message de droite à gauche</option>
+	           <option value="2">Message stationnaire</option>
+	           <option value="3">Message stationnaire avec flashe</option>
+	           <option value="4">Le message précédent est poussé par un nouveau message</option>
+	           <option value="5">Le message précédent est poussé vers le bas par un nouveau message</option>
+	           <option value="6">Le message précédent est poussé vers la gauche par un nouveau message</option>
+	           <option value="7">Le message précédent est poussé à droite par un nouveau message</option>
+	           <option value="8">Le nouveau message est effacé du message précédent de bas en haut</option>
+	           <option value="9">Le nouveau message est effacé du message précédent de haut en bas</option>
+	           <option value="10">Le nouveau message est effacé du message précédent de droite à gauche</option>
+	           <option value="11">Le nouveau message est effacé du message précédent de gauche à droite</option>
+	           <option value="12">La nouvelle ligne de message pousse la ligne du bas vers la ligne du haut si le signe à 2 lignes</option>
+	           <option value="13">Différents modes sont appelés pour afficher le message automatiquement</option>
+	           <option value="14">Le message précédent est poussé vers le centre de l'écran par le nouveau un message</option>
+	           <option value="15">Le message précédent est poussé vers l'extérieur du centre par le nouveau message</option>
+	           <option value="16">Le nouveau message est effacé sur le message précédent dans un mouvement vers l'intérieur</option>
+	           <option value="17">Le nouveau message est effacé sur le message précédent dans un mouvement vers l'extérieur</option>
+	           <option value="18">Le message se déplace de droite à gauche. Les personnages font environ la moitié de leur largeur normale</option>
+       	</select>
+   </p>
+
+   <p>
+       <label for="police">Police</label><br />
+       	<select name="police" id="police">
+	           <option value="grande">Grande</option>
+	           <option value="petite">Petite</option>
+       	</select>
+   </p>
+	<input type="submit" value="Mettre à jour" />
+</form>
+        
+    </body>
+</html>
