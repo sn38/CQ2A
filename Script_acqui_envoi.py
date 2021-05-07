@@ -8,7 +8,7 @@ Date: 19/03/2021
 
 # Imports
 import sqlite3
-import time
+from time import sleep
 import serial
 import mysql.connector
 
@@ -16,55 +16,68 @@ import mysql.connector
 class frame_manager:
 # ---------------------------------------- CONSTRUCTOR ------------------------------------------------ #
     def __init__(self):
-        self.co2 = -1
-        self.cov = -1
-        self.hum = -1
-        self.temp = -1
-        self.pm1 = -1
-        self.pm2 = -1
-        self.pm10 = -1
+        self.co2 = None
+        self.cov = None
+        self.hum = None
+        self.temp = None
+        self.pm1 = None
+        self.pm2 = None
+        self.pm10 = None
+
 
 # -------------------------- GETTING EVERY INFORMATIONS INSIDE THE FRAME ------------------------------ #
     def get_data(self):
         serialPort = serial.Serial("/dev/ttyAMA0", 57600, timeout=0.1)  # serial.Serial(/dev/ttyAMA0 , baudrate, timeout=Y)
 
-        #while self.co2 == -1 or self.cov == -1 or self.hum == -1 or self.temp == -1 or self.pm1 == -1 or self.pm2 == -1 or self.pm10 == -1:
+# ----------------------------------RESTART THE VALUES OF DATA -----------------------------------------#
+        self.co2 = None
+        self.cov = None
+        self.hum = None
+        self.temp = None
+        self.pm1 = None
+        self.pm2 = None
+        self.pm10 = None
 
-        # We are waitting for 24 bytes or above frame 4BS
-        if serialPort.inWaiting() >= 24:
-            frame = serialPort.read(serialPort.inWaiting())
-            print('\n\nTrame brut: ', frame)
-            print('Trame en hexa: ', frame.hex())
-            idSender = frame[11:11 + 4] # recuperation of the id sender
-            print('Lecture de l\'ID Sender: ', idSender.hex())
+        while True:
+            if self.co2 == None or self.cov == None or self.hum == None or self.temp == None or self.pm1 == None or self.pm2 == None or self.pm10 == None:
 
-            # We check if the id of the sensor are inside the frame received and we show data
+                # We are waitting for 24 bytes or above, frame 4BS
+                if serialPort.inWaiting() >= 24:
+                    frame = serialPort.read(serialPort.inWaiting())
+                    print('\n\nTrame brut: ', frame)
+                    print('Trame en hexa: ', frame.hex())
+                    idSender = frame[11:11 + 4] # recuperation of the id sender
+                    print('Lecture de l\'ID Sender: ', idSender)
 
-    # ------------------- GETTING THE CO2, HUMIDITY & TEMPERATURE ------------------- #
-            if idSender == b'\xff\xd5\xa8\x0a':
-                print('C02:', frame[8] * 10, 'ppm')
-                print('Humidite:', frame[7] / 2, '%')
-                print('Temperature:', frame[9] * 51 / 255, '°C')
-                self.co2 = frame[8] * 10
-                self.hum = frame[7] / 2
-                self.temp = frame[9] * 51 * 255
+                    # We check if the id of the sensor are inside the frame received and we show data
+            # ------------------- GETTING THE CO2, HUMIDITY & TEMPERATURE ------------------- #
+                    if idSender == b'\xff\xd5\xa8\x0a':
+                        print('C02:', frame[8] * 10, 'ppm')
+                        print('Humidite:', frame[7] / 2, '%')
+                        print('Temperature:', frame[9] * 51 / 255, '°C')
+                        self.co2 = frame[8] * 10
+                        self.hum = frame[7] / 2
+                        self.temp = frame[9] * 51 * 255
 
-    # ------------------------------ GETTING THE COV -------------------------------- #
-            if idSender == b'\xff\xd5\xa8\x0f':
-                print('COV:', frame[7] * 255 + frame[8],
-                      "ppb")  # frame[7] don't really increase but the frame[8] increase his value
-                self.cov = frame[7] * 255 + frame[8]
+            # ------------------------------ GETTING THE COV -------------------------------- #
+                    if idSender == b'\xff\xd5\xa8\x0f':
+                        print('COV:', frame[7] * 255 + frame[8],
+                              "ppb")  # frame[7] don't really increase but the frame[8] increase his value
+                        self.cov = frame[7] * 255 + frame[8]
 
-    # ----------------------- GETTING THE PM1, PM2.5, PM10 -------------------------- #
-            if idSender == b'\xFF\xD5\xA8\x14':
-                print('PM1:', frame[7] * 2 + frame[8] // 128, 'PM2.5:', frame[8] * 4 + frame[9] // 64, 'PM10:',
-                      frame[9] * 8 + frame[10] // 32)
-                self.pm1 = frame[7] * 2 + frame[8] // 128
-                self.pm2 = frame[8] * 4 + frame[9] // 64
-                self.pm10 = frame[9] * 8 + frame[10] // 32
+            # ----------------------- GETTING THE PM1, PM2.5, PM10 -------------------------- #
+                    if idSender == b'\xFF\xD5\xA8\x14':
+                        print('PM1:', frame[7] * 2 + frame[8] // 128, 'PM2.5:', frame[8] * 4 + frame[9] // 64, 'PM10:',
+                              frame[9] * 8 + frame[10] // 32)
+                        self.pm1 = frame[7] * 2 + frame[8] // 128
+                        self.pm2 = frame[8] * 4 + frame[9] // 64
+                        self.pm10 = frame[9] * 8 + frame[10] // 32
 
-        #else:
-            return [self.co2, self.cov, self.hum, self.temp, self.pm1, self.pm2, self.pm10]
+                print("Valeurs incomplète")
+                print("Co2 :", self.co2, "Hum:", self.hum, "Temp:", self.temp, "Cov:", self.cov, "PM1:", self.pm1, "PM2:", self.pm2, "PM10:", self.pm10)
+                sleep(10)
+            else:
+                return [self.co2, self.cov, self.hum, self.temp, self.pm1, self.pm2, self.pm10]
 
 
 class bdd:
@@ -79,8 +92,8 @@ class bdd:
 
 # ------------------------------ CONNECTION TO THE DATABASE MYSQL ------------------------------------- #
     def connection_bdd_mysql(self):
-        self.connexion_mysql = mysql.connector.connect(user="root", password="password",
-                                                       host="172.16.126.21", database="bdd_qualiteair")
+        self.connexion_mysql = mysql.connector.connect(user='cq2a2021', password='EwFGFH12RErn6fM', host='https://phpmyadmin-gra1.hosting.ovh.net/by93828-001.privatesql',
+                                                       database='cq2a2021', port='35146')
 
 # -------------------------------- UPDATING THE DATABASE SQLITE --------------------------------------- #
     def set_bdd_sqlite(self, val_c02, val_cov, val_humi, val_temp, val_pm1, val_pm2, val_pm10):
@@ -122,10 +135,10 @@ def main():
 # ------------------------------- SENDING THE DATA LIST TO THE DATABASES -------------------------------#
     while True:
         data = senders.get_data()
-        time.sleep(60)
         bdd_sqlite.set_bdd_sqlite(data[0], data[1], data[2], data[3], data[4], data[5], data[6]) #co2 - cov - humidite - temperature - pm1 - pm2 - pm10
         bdd_mysql.set_bdd_mysql(data[0], data[1], data[4], data[5], data[6], data[3], data[2]) #co2 - cov - pm1 - pm2 - pm10 - temperature - humidite
         print(data,"\n")
+        sleep(30)
         print("\n==================================================================\n")
 
 
