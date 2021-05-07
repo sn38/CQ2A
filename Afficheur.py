@@ -95,6 +95,68 @@ def pm10(taux_pm10):
                 etat_pm10 = "mauvais"
 
         return etat_pm10
+
+
+# --------------------Fonction defilement-------------------#
+
+def defilement(valeur_defilement):
+    if valeur_defilement == 1:
+        valeur_bin_defilement = b'61'
+    if valeur_defilement == 2:
+        valeur_bin_defilement = b'62'
+    if valeur_defilement == 3:
+        valeur_bin_defilement = b'63'
+    if valeur_defilement == 4:
+        valeur_bin_defilement = b'65'
+    if valeur_defilement == 5:
+        valeur_bin_defilement = b'66'
+    if valeur_defilement == 6:
+        valeur_bin_defilement = b'67'
+    if valeur_defilement == 7:
+        valeur_bin_defilement = b'68'
+    if valeur_defilement == 8:
+        valeur_bin_defilement = b'69'
+    if valeur_defilement == 9:
+        valeur_bin_defilement = b'6A'
+    if valeur_defilement == 10:
+        valeur_bin_defilement = b'6B'
+    if valeur_defilement == 11:
+        valeur_bin_defilement = b'6C'
+    if valeur_defilement == 12:
+        valeur_bin_defilement = b'6D'
+    if valeur_defilement == 13:
+        valeur_bin_defilement = b'6F'
+    if valeur_defilement == 14:
+        valeur_bin_defilement = b'70'
+    if valeur_defilement == 15:
+        valeur_bin_defilement = b'71'
+    if valeur_defilement == 16:
+        valeur_bin_defilement = b'72'
+    if valeur_defilement == 17:
+        valeur_bin_defilement = b'73'
+    if valeur_defilement == 18:
+        valeur_bin_defilement = b'74'
+
+    return valeur_bin_defilement
+
+# --------------------Fonction Position-------------------#
+
+def position(valeur_position):
+    if valeur_position == "gauche":
+        valeur_bin_position = b'31'
+    if valeur_position == "centre":
+        valeur_bin_position = b'30'
+    return valeur_bin_position
+
+# --------------------Fonction Police-------------------#
+
+def police(valeur_police):
+    if valeur_police == "grande":
+        valeur_bin_position = b'31'
+    if valeur_police == "petite":
+        valeur_bin_position = b'30'
+    return valeur_bin_position
+
 #---------------------- ajout dans la base de données-------------------------#
 
 """def set_bdd_sqlite(val_co2, val_cov,):   # FONCTIONNE
@@ -108,7 +170,7 @@ def pm10(taux_pm10):
     cursor.close()
     connexion_sqlite.close()"""
 
-#------------------- Acquisition de la base de données raspberry ------------------#
+#------------------- Acquisition de la base de données raspberry pour les sondes ------------------#
 def get_bdd_sqlite(donne, id_bdd):
     connexion_sqlite = sqlite3.connect('/var/www/html/adminer/bdd_sondes.db')
     cursor = connexion_sqlite.cursor()
@@ -121,10 +183,24 @@ def get_bdd_sqlite(donne, id_bdd):
     connexion_sqlite.close()
 
     return bdd_donne
+#------------------- Acquisition de la base de données raspberry pour le site web ------------------#
 
-#----------- Ajouts des couleurs selon la valeurs ------------------------------
+def get_bdd_sqlite2(donne, id_bdd):
+    connexion_sqlite = sqlite3.connect('/var/www/html/adminer/SiteWebTechnicien.db')
+    cursor = connexion_sqlite.cursor()
+    get_valeur = "SELECT ? FROM parametre WHERE id = 1"
+    data = (donne, id_bdd)
+    cursor.execute(get_valeur, data)
 
-def affichage(taux_co2, valeur_bin_co2, taux_cov, valeur_bin_cov, taux_hum, valeur_bin_hum, taux_pm2, valeur_bin_pm2, taux_pm10, valeur_bin_pm10, taux_temp, valeur_bin_temp):
+    bdd_donne = cursor.fetchone()
+    cursor.close()
+    connexion_sqlite.close()
+
+    return bdd_donne
+
+#----------- Ajouts des couleurs et des parametre selon la valeurs ------------------------------
+
+def affichage(valeur_bin_defilement,valeur_bin_position,valeur_bin_police, taux_co2, valeur_bin_co2, taux_cov, valeur_bin_cov, taux_hum, valeur_bin_hum, taux_pm2, valeur_bin_pm2, taux_pm10, valeur_bin_pm10, taux_temp, valeur_bin_temp):
     color_co2 = color(taux_co2)  # Appel de la fonction color
     color_cov = color(taux_cov)
     color_hum = color(taux_hum)
@@ -138,8 +214,9 @@ def affichage(taux_co2, valeur_bin_co2, taux_cov, valeur_bin_cov, taux_hum, vale
 
 #----------------------------- Trame de l'afficheur ------------------------------
 
-    ser.write(b"_01Z00_02AA_1B_30_61_1E_31_"+color_co2+b"CO2 "+valeur_bin_co2+b" ppm _0D_"+color_cov+b"COV "+valeur_bin_cov+b" ppb _0D_"+color_hum+b" Humidite "+valeur_bin_hum+b"% _0D_"+color_pm2+b"PM2 "+valeur_bin_pm2+b"_0D_"+color_pm10+b"PM10 "+valeur_bin_pm10+b"_0D_"+color_temp+b"Temperature "+valeur_bin_temp+b" degres _10A_04")
-    #ser.write(b"_01Z00_02AA_1B_30_62_1E_31_1C3 Loubard vie _0D_1C2 Loubard nuit _10A_04")
+    #ser.write(b"_01Z00_02AA_1B_30_61_1E_31_"+color_co2+b"CO2 "+valeur_bin_co2+b" ppm _0D_"+color_cov+b"COV "+valeur_bin_cov+b" ppb _0D_"+color_hum+b" Humidite "+valeur_bin_hum+b"% _0D_"+color_pm2+b"PM2 "+valeur_bin_pm2+b"_0D_"+color_pm10+b"PM10 "+valeur_bin_pm10+b"_0D_"+color_temp+b"Temperature "+valeur_bin_temp+b" degres _10A_04")
+    ser.write(b"_01Z00_02AA_1B_"+valeur_bin_position+b"_"+valeur_bin_defilement+b"_1E_"+valeur_bin_police+b"_1C3 test 1 _0D_1C2 test 2 _10A_04")
+    ser.write(b"_01Z00_02AA_1B_30_61_1E_31_1C1 test 1 _0D_1C2 test 2 _10A_04")
     ser.close()
 
 #--------------------Fonction couleur-------------------#
@@ -159,6 +236,23 @@ def main():
     #set_bdd_sqlite(1300, 200) #ajout des valeurs dans la Bdd
     #get_bdd_sqlite() #acquisition des valeurs dans la bdd
 
+# ------------------------- Défilement -------------------------------
+
+    valeur_defilement = 1
+    #defilement = get_bdd_sqlite("Defilement", 1)  # valeur pour la fonction defilement BDD
+    # print ("Defilement ",valeur_temp) # verification reception
+    valeur_bin_defilement = b"61"  # valeur pour l'affichage en binaire
+
+# ------------------------- Position -------------------------------
+    valeur_position = 1
+    # defilement = get_bdd_sqlite("Defilement", 1)  # valeur pour la fonction defilement BDD
+    # print ("Defilement ",valeur_temp) # verification reception
+    valeur_bin_position = b"30"  # valeur pour l'affichage en binaire
+# ------------------------- Police -------------------------------
+    valeur_police = 1
+    # defilement = get_bdd_sqlite("Defilement", 1)  # valeur pour la fonction defilement BDD
+    # print ("Defilement ",valeur_temp) # verification reception
+    valeur_bin_police = b"31"  # valeur pour l'affichage en binaire
 # ------------------------  COV ----------------------
     valeur_cov = 200
     #valeur_cov = get_bdd_sqlite("cov", 1)  # valeur pour la fonction co2 BDD
@@ -205,7 +299,7 @@ def main():
 
 #-------------------------- Affichage ------------------------------
 
-    affichage(etat_co2, valeur_bin_co2, etat_cov, valeur_bin_cov,etat_hum,valeur_bin_hum,etat_pm2,valeur_bin_pm2,etat_pm10,valeur_bin_pm10, etat_temp, valeur_bin_temp)
+    affichage(valeur_bin_defilement, valeur_bin_position, valeur_bin_police, etat_co2, valeur_bin_co2, etat_cov, valeur_bin_cov,etat_hum,valeur_bin_hum,etat_pm2,valeur_bin_pm2,etat_pm10,valeur_bin_pm10, etat_temp, valeur_bin_temp)
 
 #------------ Vérification si le port est utililsé ----------------
 
