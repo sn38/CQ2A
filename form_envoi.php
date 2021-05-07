@@ -1,11 +1,19 @@
 <?php
-if(isset($_POST["submit"])){
-		connexion_sqlite = sqlite3.connect('C:\Users\adrid\Desktop\Site web projet\SiteWebTechnicien')
-  		cursor = self.connexion_sqlite.cursor()
-        update_val = 'UPDATE parametre SET PositionDuTexte = ?, Defilement = ?, Police = ?, WHERE id = 1'
-        data = (Position_Police, Position_du_texte, type_police)
-        cursor.execute(update_val, data)
-        self.connexion_sqlite.commit()
-        print("Mise a jour de la base de donnees SQLite reussi !")
-        cursor.close() 
+$defilement = $_POST["defilement"];
+$position = $_POST["position"];
+$police = $_POST["police"];
+
+// Connexion
+$bdd = new SQLite3('SiteWebTechnicien.db');
+// Inserer ici les requêtes
+$q = $bdd->exec('UPDATE Parametre SET PositionDuTexte = $position, Defilement = $defilement, Police = $position, WHERE id = 1');
+// Deconnexion
+$bd = null;
 ?>
+
+
+
+
+
+
+
