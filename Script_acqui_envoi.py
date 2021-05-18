@@ -9,7 +9,7 @@ Date: 19/03/2021
 import sqlite3
 from time import sleep
 import serial
-import mysql.connector
+import requests
 
 
 # Class
@@ -29,7 +29,7 @@ class frame_manager:
         serialPort = serial.Serial("/dev/ttyAMA0", 57600,
                                    timeout=0.1)  # serial.Serial(/dev/ttyAMA0 , baudrate, timeout=Y)
 
-        # ----------------------------------RESTART THE VALUES OF DATA -----------------------------------------#
+        # --------------------------------RESTART THE VALUES OF DATA ---------------------------------------#
         self.co2 = None
         self.cov = None
         self.hum = None
@@ -91,12 +91,6 @@ class bdd:
     def connection_bdd_sqlite(self):
         self.connexion_sqlite = sqlite3.connect('/var/www/html/adminer/bdd_sondes.db')
 
-    # ------------------------------ CONNECTION TO THE DATABASE MYSQL ------------------------------------- #
-    def connection_bdd_mysql(self):
-        self.connexion_mysql = mysql.connector.connect(user='cq2a2021', password='EwFGFH12RErn6fM',
-                                                       host='by93828-001.privatesql',
-                                                       database='cq2a2021', port='35146')
-
     # -------------------------------- UPDATING THE DATABASE SQLITE --------------------------------------- #
     def set_bdd_sqlite(self, val_c02, val_cov, val_humi, val_temp, val_pm1, val_pm2, val_pm10):
         cursor = self.connexion_sqlite.cursor()
@@ -107,39 +101,31 @@ class bdd:
         print("Mise a jour de la base de donnees SQLite reussi !")
         cursor.close()
 
-    # ------------------------- CREATING A NEW ENTRY IN THE DATABASE MYSQL -------------------------------- #
-    def set_bdd_mysql(self, val_c02, val_cov, val_pm1, val_pm2, val_pm10, val_temp, val_hum):
-        cursor = self.connexion_mysql.cursor()
-        insert_val = "INSERT INTO qualiteairdonnees (tauxco2, tauxcov, tauxpm1, tauxpm2, tauxpm10, temperature, humidite) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        data = (val_c02, val_cov, val_pm1, val_pm2, val_pm10, val_temp, val_hum)
-        cursor.execute(insert_val, data)
-        self.connexion_mysql.commit()
+    # ------------------ CALL A PHP SCRIPT FOR SENDING THE DATA IN THE MYSQL DATABASE --------------------- #
+    def set_bdd_mysql(self, val_co2, val_cov, val_pm1, val_pm2, val_pm10, val_temp, val_hum):
+        formdata = {'co2':'11', 'cov':'22', 'pm1':'33', 'pm2':'44', 'pm10':'55', 'temp':'66', 'hum':'77'}
+        #formdata = {val_co2 , val_cov, val_pm1, val_pm2, val_pm10, val_temp, val_hum}
+        p = requests.post('https://cq2a.lycee-lgm.fr/scriptpython/envoi_mysql.php', data=formdata)
         print("Mise a jour de la base de donnees MySQL reussi !")
-
-        cursor.close()
-
 
 # Programme principal
 def main():
     # -------------------- CREATING THE OBJECT USING THE CLASS "bdd" & "frame_manager"--------------------- #
     senders = frame_manager()
     bdd_sqlite = bdd()
-    #bdd_mysql = bdd()
+    bdd_mysql = bdd()
 
     # --------------------------------- CONNECTION TO DATABASES & PORTS------------------------------------ #
-    # senders.connection_port()
     bdd_sqlite.connection_bdd_sqlite()
-    #bdd_mysql.connection_bdd_mysql()
-
-    # -------------------------------------SENDING THE DATA IN A LIST ------------------------------------- #
 
     # ------------------------------- SENDING THE DATA LIST TO THE DATABASES -------------------------------#
     while True:
         data = senders.get_data()
         bdd_sqlite.set_bdd_sqlite(data[0], data[1], data[2], data[3], data[4], data[5], data[6])  # co2 - cov - humidite - temperature - pm1 - pm2 - pm10
-        sleep(30)
-        #bdd_mysql.set_bdd_mysql(data[0], data[1], data[4], data[5], data[6], data[3], data[2])  # co2 - cov - pm1 - pm2 - pm10 - temperature - humidite
+        sleep(2)
+        bdd_mysql.set_bdd_mysql(data[0], data[1], data[4], data[5], data[6], data[3], data[2])  # co2 - cov - pm1 - pm2 - pm10 - temperature - humidite
         print(data, "\n")
+        sleep(30)
         print("\n==================================================================\n")
 
 
