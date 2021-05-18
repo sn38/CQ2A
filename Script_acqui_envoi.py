@@ -10,19 +10,20 @@ import sqlite3
 from time import sleep
 import serial
 import requests
+import threading
 
 
 # Class
 class frame_manager:
     # ---------------------------------------- CONSTRUCTOR ------------------------------------------------ #
     def __init__(self):
-        self.co2 = None
-        self.cov = None
-        self.hum = None
-        self.temp = None
-        self.pm1 = None
-        self.pm2 = None
-        self.pm10 = None
+        self.co2 = 'co2'
+        self.cov = 'cov'
+        self.hum = 'hum'
+        self.temp = 'temp'
+        self.pm1 = 'pm1'
+        self.pm2 = 'pm2'
+        self.pm10 = 'pm10'
 
     # -------------------------- GETTING EVERY INFORMATIONS INSIDE THE FRAME ------------------------------ #
     def get_data(self):
@@ -30,17 +31,8 @@ class frame_manager:
                                    timeout=0.1)  # serial.Serial(/dev/ttyAMA0 , baudrate, timeout=Y)
 
         # --------------------------------RESTART THE VALUES OF DATA ---------------------------------------#
-        self.co2 = None
-        self.cov = None
-        self.hum = None
-        self.temp = None
-        self.pm1 = None
-        self.pm2 = None
-        self.pm10 = None
-
+        data = {self.co2:None, self.cov:None, self.hum:None, self.temp:None, self.pm1:None, self.pm2:None, self.pm10:None}
         while True:
-            if self.co2 == None or self.cov == None or self.hum == None or self.temp == None or self.pm1 == None or self.pm2 == None or self.pm10 == None:
-
                 # We are waitting for 24 bytes or above, frame 4BS
                 if serialPort.inWaiting() >= 24:
                     frame = serialPort.read(serialPort.inWaiting())
@@ -55,30 +47,28 @@ class frame_manager:
                         print('C02:', frame[8] * 10, 'ppm')
                         print('Humidite:', frame[7] / 2, '%')
                         print('Temperature:', frame[9] * 51 / 255, '°C')
-                        self.co2 = frame[8] * 10
-                        self.hum = frame[7] / 2
-                        self.temp = frame[9] * 51 / 255
+                        data[self.co2] = frame[8] * 10
+                        data[self.hum] = frame[7] / 2
+                        data[self.temp] = frame[9] * 51 / 255
 
                     # ------------------------------ GETTING THE COV -------------------------------- #
                     if idSender == b'\xff\xd5\xa8\x0f':
                         print('COV:', frame[7] * 255 + frame[8],
                               "ppb")  # frame[7] don't really increase but the frame[8] increase his value
-                        self.cov = frame[7] * 255 + frame[8]
+                        data[self.cov] = frame[7] * 255 + frame[8]
 
                     # ----------------------- GETTING THE PM1, PM2.5, PM10 -------------------------- #
                     if idSender == b'\xFF\xD5\xA8\x14':
                         print('PM1:', frame[7] * 2 + frame[8] // 128, "µ/m^3")
                         print('PM2.5:', frame[8] * 4 + frame[9] // 64, "µ/m^3")
                         print('PM10:', frame[9] * 8 + frame[10] // 32, "µ/m^3")
-                        self.pm1 = frame[7] * 2 + frame[8] // 128
-                        self.pm2 = frame[8] * 4 + frame[9] // 64
-                        self.pm10 = frame[9] * 8 + frame[10] // 32
+                        data[self.pm1] = frame[7] * 2 + frame[8] // 128
+                        data[self.pm2] = frame[8] * 4 + frame[9] // 64
+                        data[self.pm10] = frame[9] * 8 + frame[10] // 32
 
-                print("\nValeurs incomplète => | Co2 :", self.co2, "ppm | Hum:", self.hum, "% | Temp:", self.temp, "°C | Cov:", self.cov, "ppb | PM1:", self.pm1,
-                      "µ/m^3 | PM2:", self.pm2, "µ/m^3 | PM10:", self.pm10, "µ/m^3 |")
-                sleep(10)
-            else:
-                return [self.co2, self.cov, self.hum, self.temp, self.pm1, self.pm2, self.pm10]
+                #print("\nValeurs incomplète => | Co2 :", self.co2, "ppm | Hum:", self.hum, "% | Temp:", self.temp, "°C | Cov:", self.cov, "ppb | PM1:", self.pm1,"µ/m^3 | PM2:", self.pm2, "µ/m^3 | PM10:", self.pm10, "µ/m^3 |")
+                sleep(0.5)
+                return data
 
 
 class bdd:
@@ -103,10 +93,14 @@ class bdd:
 
     # ------------------ CALL A PHP SCRIPT FOR SENDING THE DATA IN THE MYSQL DATABASE --------------------- #
     def set_bdd_mysql(self, val_co2, val_cov, val_pm1, val_pm2, val_pm10, val_temp, val_hum):
-        formdata = {'co2':'11', 'cov':'22', 'pm1':'33', 'pm2':'44', 'pm10':'55', 'temp':'66', 'hum':'77'}
-        #formdata = {val_co2 , val_cov, val_pm1, val_pm2, val_pm10, val_temp, val_hum}
-        p = requests.post('https://cq2a.lycee-lgm.fr/scriptpython/envoi_mysql.php', data=formdata)
+        formdata = {'co2':val_co2, 'cov':val_cov, 'pm1':val_pm1, 'pm2':val_pm2, 'pm10':val_pm10, 'temp':val_temp, 'hum':val_hum}
+        requests.post('https://cq2a.lycee-lgm.fr/scriptpython/envoi_mysql.php', data=formdata)
         print("Mise a jour de la base de donnees MySQL reussi !")
+
+    def sending_bdd(self, data, bdd_sqlite, bdd_mysql):
+        bdd_sqlite.set_bdd_sqlite(data[0], data[1], data[2], data[3], data[4], data[5], data[6])  # co2 - cov - humidite - temperature - pm1 - pm2 - pm10
+        bdd_mysql.set_bdd_mysql(data[0], data[1], data[4], data[5], data[6], data[3], data[2])  # co2 - cov - pm1 - pm2 - pm10 - temperature - humidite
+        sleep(60)
 
 # Programme principal
 def main():
@@ -119,14 +113,11 @@ def main():
     bdd_sqlite.connection_bdd_sqlite()
 
     # ------------------------------- SENDING THE DATA LIST TO THE DATABASES -------------------------------#
-    while True:
-        data = senders.get_data()
-        bdd_sqlite.set_bdd_sqlite(data[0], data[1], data[2], data[3], data[4], data[5], data[6])  # co2 - cov - humidite - temperature - pm1 - pm2 - pm10
-        sleep(2)
-        bdd_mysql.set_bdd_mysql(data[0], data[1], data[4], data[5], data[6], data[3], data[2])  # co2 - cov - pm1 - pm2 - pm10 - temperature - humidite
-        print(data, "\n")
-        sleep(30)
-        print("\n==================================================================\n")
+    data = threading.Thread(target=senders.get_data).start()
+    senders_bdd = threading.Thread(target=bdd.sending_bdd, args=(data, bdd_sqlite, bdd_mysql))
+    senders_bdd.start()
+
+    print("\n==================================================================\n")
 
 
 if __name__ == '__main__':
