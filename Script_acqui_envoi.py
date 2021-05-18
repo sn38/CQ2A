@@ -44,10 +44,10 @@ class frame_manager:
                 # We are waitting for 24 bytes or above, frame 4BS
                 if serialPort.inWaiting() >= 24:
                     frame = serialPort.read(serialPort.inWaiting())
-                    print('\n\nTrame brut: ', frame)
+                    print('\nTrame brut: ', frame)
                     print('Trame en hexa: ', frame.hex())
                     idSender = frame[11:11 + 4]  # recuperation of the id sender
-                    print('Lecture de l\'ID Sender: ', idSender)
+                    print('\nLecture de l\'ID Sender: ', idSender)
 
                     # We check if the id of the sensor are inside the frame received and we show data
                     # ------------------- GETTING THE CO2, HUMIDITY & TEMPERATURE ------------------- #
@@ -57,7 +57,7 @@ class frame_manager:
                         print('Temperature:', frame[9] * 51 / 255, '°C')
                         self.co2 = frame[8] * 10
                         self.hum = frame[7] / 2
-                        self.temp = frame[9] * 51 * 255
+                        self.temp = frame[9] * 51 / 255
 
                     # ------------------------------ GETTING THE COV -------------------------------- #
                     if idSender == b'\xff\xd5\xa8\x0f':
@@ -67,15 +67,15 @@ class frame_manager:
 
                     # ----------------------- GETTING THE PM1, PM2.5, PM10 -------------------------- #
                     if idSender == b'\xFF\xD5\xA8\x14':
-                        print('PM1:', frame[7] * 2 + frame[8] // 128, 'PM2.5:', frame[8] * 4 + frame[9] // 64, 'PM10:',
-                              frame[9] * 8 + frame[10] // 32)
+                        print('PM1:', frame[7] * 2 + frame[8] // 128, "µ/m^3")
+                        print('PM2.5:', frame[8] * 4 + frame[9] // 64, "µ/m^3")
+                        print('PM10:', frame[9] * 8 + frame[10] // 32, "µ/m^3")
                         self.pm1 = frame[7] * 2 + frame[8] // 128
                         self.pm2 = frame[8] * 4 + frame[9] // 64
                         self.pm10 = frame[9] * 8 + frame[10] // 32
 
-                print("Valeurs incomplète")
-                print("Co2 :", self.co2, "Hum:", self.hum, "Temp:", self.temp, "Cov:", self.cov, "PM1:", self.pm1,
-                      "PM2:", self.pm2, "PM10:", self.pm10)
+                print("\nValeurs incomplète => | Co2 :", self.co2, "ppm | Hum:", self.hum, "% | Temp:", self.temp, "°C | Cov:", self.cov, "ppb | PM1:", self.pm1,
+                      "µ/m^3 | PM2:", self.pm2, "µ/m^3 | PM10:", self.pm10, "µ/m^3 |")
                 sleep(10)
             else:
                 return [self.co2, self.cov, self.hum, self.temp, self.pm1, self.pm2, self.pm10]
@@ -94,7 +94,7 @@ class bdd:
     # ------------------------------ CONNECTION TO THE DATABASE MYSQL ------------------------------------- #
     def connection_bdd_mysql(self):
         self.connexion_mysql = mysql.connector.connect(user='cq2a2021', password='EwFGFH12RErn6fM',
-                                                       host='https://phpmyadmin-gra1.hosting.ovh.net/by93828-001.privatesql',
+                                                       host='by93828-001.privatesql',
                                                        database='cq2a2021', port='35146')
 
     # -------------------------------- UPDATING THE DATABASE SQLITE --------------------------------------- #
@@ -136,15 +136,13 @@ def main():
     # ------------------------------- SENDING THE DATA LIST TO THE DATABASES -------------------------------#
     while True:
         data = senders.get_data()
-        bdd_sqlite.set_bdd_sqlite(data[0], data[1], data[2], data[3], data[4], data[5],
-                                  data[6])  # co2 - cov - humidite - temperature - pm1 - pm2 - pm10
+        bdd_sqlite.set_bdd_sqlite(data[0], data[1], data[2], data[3], data[4], data[5], data[6])  # co2 - cov - humidite - temperature - pm1 - pm2 - pm10
+        sleep(30)
         #bdd_mysql.set_bdd_mysql(data[0], data[1], data[4], data[5], data[6], data[3], data[2])  # co2 - cov - pm1 - pm2 - pm10 - temperature - humidite
         print(data, "\n")
-        sleep(30)
         print("\n==================================================================\n")
 
 
 if __name__ == '__main__':
     main()
 # Fin
-
