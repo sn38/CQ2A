@@ -26,7 +26,7 @@ class frame_manager:
         self.pm10 = pm10
     # -------------------------- GETTING EVERY INFORMATIONS INSIDE THE FRAME ------------------------------ #
     def get_data(self, co2, cov, hum, temp, pm1, pm2, pm10):
-        serialPort = serial.Serial("/dev/ttyAMA0", 57600, timeout=0.1) #serial.Serial(/dev/ttyAMA0 , baudrate, timeout=Y)
+        serialPort = serial.Serial("com7", 57600, timeout=0.1) #serial.Serial(/dev/ttyAMA0 , baudrate, timeout=Y)
         while True:
                 # We are waitting for 24 bytes or above, frame 4BS
                 if serialPort.inWaiting() >= 24:
@@ -69,50 +69,58 @@ class frame_manager:
 class bdd:
     # ---------------------------------------- CONSTRUCTOR ------------------------------------------------ #
     def __init__(self):
-        self.connexion_sqlite = None
+        self.connection_sqlite = None
 
     # ------------------------------ CONNECTION TO THE DATABASE SQLITE ------------------------------------ #
     def connection_bdd_sqlite(self):
-        self.connexion_sqlite = sqlite3.connect('/var/www/html/adminer/bdd_sondes.db')
+        self.connection_sqlite = sqlite3.connect('P:/Documents/PROJET/DB/bdd_raspberry.db')
 
     # -------------------------------- UPDATING THE DATABASE SQLITE --------------------------------------- #
     def set_bdd_sqlite_co2(self, val_c02, val_humi, val_temp):
-        cursor = self.connexion_sqlite.cursor()
+        cursor = self.connection_sqlite.cursor()
         update_val = 'UPDATE donnees_sondes SET co2 = ?, humidite = ?, temperature = ? WHERE id = 1'
         data = (val_c02, val_humi, val_temp)
         cursor.execute(update_val, data)
-        self.connexion_sqlite.commit()
+        self.connection_sqlite.commit()
         print("Mise a jour du co2, de l'humidité et de la température de la base de données SQLite reussi !")
         cursor.close()
 
     def set_bdd_sqlite_cov(self, val_cov):
-        cursor = self.connexion_sqlite.cursor()
+        cursor = self.connection_sqlite.cursor()
         update_val = 'UPDATE donnees_sondes SET cov = ? WHERE id = 1'
-        data = val_cov
+        data = (val_cov,)
         cursor.execute(update_val, data)
-        self.connexion_sqlite.commit()
+        self.connection_sqlite.commit()
         print("Mise a jour du cov de la base de données SQLite reussi !")
         cursor.close()
 
     def set_bdd_sqlite_pm(self, val_pm1, val_pm2, val_pm10):
-        cursor = self.connexion_sqlite.cursor()
+        cursor = self.connection_sqlite.cursor()
         update_val = 'UPDATE donnees_sondes SET pm1 = ?, pm2 = ?, pm10 = ? WHERE id = 1'
         data = (val_pm1, val_pm2, val_pm10)
         cursor.execute(update_val, data)
-        self.connexion_sqlite.commit()
+        self.connection_sqlite.commit()
         print("Mise a jour du pm1, du pm2.5 et du pm10 de la base de données SQLite reussi !")
         cursor.close()
 
     # ------------------ CALL A PHP SCRIPT FOR SENDING THE DATA IN THE MYSQL DATABASE --------------------- #
-    def set_bdd_mysql(self, co2, cov, pm1, pm2, pm10, temp, hum):
-        while True:
-            formdata = {'co2':statistics.mean(co2), 'cov':statistics.mean(cov), 'pm1':statistics.mean(pm1),
-                        'pm2':statistics.mean(pm2), 'pm10':statistics.mean(pm10),
-                        'temp':statistics.mean(temp), 'hum':statistics.mean(hum)}
+    def set_bdd_mysql(self):
+        # --------------------- GETTING THE DATA FROM THE SQLITE DATABASE ---------------------- #
+        cursor = self.connection_sqlite.cursor()
+        update_val = 'SELECT * FROM donnees_sondes WHERE id = 1'
+        cursor.execute(update_val)
+        donnees = cursor.fetchone()
+        self.connection_sqlite.commit()
+        print("Récupération des données de la bdd SQLite réussi !")
+        cursor.close()
 
-            requests.post('https://cq2a.lycee-lgm.fr/scriptpython/envoi_mysql.php', data=formdata)
-            print("Mise a jour de la base de donnees MySQL reussi !")
-            sleep(20)
+        # --------------------------- UPDATING THE DATABASE MYSQL ------------------------------ #
+        #print(type(donnees))
+        formdata = {'co2':donnees[1], 'cov':donnees[2], 'hum':donnees[3], 'temp':donnees[4],
+                    'pm1':donnees[5], 'pm2':donnees[6], 'pm10':donnees[7]}
+        requests.post('https://cq2a.lycee-lgm.fr/scriptpython/envoi_mysql.php', data=formdata)
+        print("Mise a jour de la base de donnees MySQL reussi !")
+        sleep(30)
 
 
 # Programme principal
@@ -131,10 +139,13 @@ def main():
 
     # --------------------------------- CONNECTION TO DATABASES & PORTS------------------------------------ #
     bdd_sqlite.connection_bdd_sqlite()
+    bdd_mysql.connection_bdd_sqlite()
 
     # ----------------------------- SENDING THE DATA LIST TO THE DATABASES ---------------------------------#
-    threading.Thread(target=senders.get_data, args=(co2, cov, pm1, pm2, pm10, temp, hum)).start()
-    threading.Thread(target=bdd_mysql.set_bdd_mysql, args=(co2, cov, pm1, pm2, pm10, temp, hum)).start()
+    threading.Thread(target=senders.get_data, args=(co2, cov, hum, temp, pm1, pm2, pm10)).start()
+    bdd_mysql.set_bdd_sqlite_cov(100)
+    bdd_sqlite.set_bdd_mysql()
+
 if __name__ == '__main__':
     main()
 # Fin
