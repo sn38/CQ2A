@@ -5,7 +5,7 @@ Création: rdouet, le 25/05/2021
 """
 # Import
 import serial
-
+from time import sleep
 # Programme principal
 class FrameInterceptor:
     _serialPort = "/dev/ttyAMA0"
@@ -13,11 +13,12 @@ class FrameInterceptor:
     _time_out = 0.1
 
     def intercept(self):
-        serialPort = serial.Serial("com7", 57600, timeout=0.1)  # serial.Serial(/dev/ttyAMA0 , baudrate, timeout=Y)
+        serialPort = serial.Serial("COM7", self._speed, timeout=self._time_out)  # Connexion au port
         while True:
+            sleep(0.5)
             # We are waitting for 24 bytes or above, frame 4BS
             if serialPort.inWaiting() >= 24:
-                frame = serialPort.read(serialPort.inWaiting())
+                frame = serialPort.read(serialPort.inWaiting()) # On met la trame dans la variable "frame"
                 return frame
 
             return None

@@ -23,15 +23,11 @@ def getData(interceptor, dispatcher, sqliteService):
             probe.parse(sqliteService, frame)
         except NoProbeFoundException:
             print("Invalid frame : no probe found")
-        sleep(1)
 
 def postMysql(sqliteService):
     while True:
         sqliteService.postUpdateMysql()
-        sleep(30)
-
-
-# ------------------ CALL A PHP SCRIPT FOR SENDING THE DATA IN THE MYSQL DATABASE --------------------- #
+        sleep(60)
 
 
 # Programme principal
@@ -39,6 +35,7 @@ def main():
     interceptor = FrameInterceptor()
     dispatcher = ProbeDispatcher()
     sqliteService = BddService()
+
 
 
     threading.Thread(target=getData, args=(interceptor, dispatcher, sqliteService)).start()
