@@ -120,7 +120,7 @@ class BddService:
         cursor.close()
         self.connection_sqlite.close()
 
-        if donnees_sql[1] > 1400 or donnees_sql[2] >= 150 or donnees_sql[5] >= 40 or donnees_sql[6] >= 45  or donnees_sql[7] >= 50: #or donnees_sql[7] >= 55:
+        if donnees_sql[1] > 1400 or donnees_sql[2] >= 450 or donnees_sql[5] >= 25 or donnees_sql[6] >= 25  or donnees_sql[7] >= 50:
 
             serialPort = serial.Serial('/dev/ttyAMA0', 57600, timeout=0.1)  # ou 'com14' PC Windows
             sleep(0.1)
@@ -130,7 +130,7 @@ class BddService:
             serialPort.close()
 
 
-        elif donnees_sql[1] < 1200 or donnees_sql[2] < 30 or donnees_sql[5] < 40 or donnees_sql[6] < 30 or donnees_sql[7] < 50: #or donnees_sql[7] < 35:
+        elif donnees_sql[1] < 1200 or donnees_sql[2] < 300 or donnees_sql[5] < 20 or donnees_sql[6] < 20 or donnees_sql[7] < 40:
 
             serialPort = serial.Serial('/dev/ttyAMA0', 57600, timeout=0.1)  # ou 'com14' PC Windows
             sleep(0.1)
