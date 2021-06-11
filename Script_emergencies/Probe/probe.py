@@ -25,14 +25,11 @@ class Co2Probe(Probe):
         return senderId == b'\xFF\xD5\xA8\x0A'
 
     def parse(self, sqliteService, frame):
-        if len(frame) < 24:
-            print("Invalid : To short frame !")
-        else:
-            co2 = frame[8] * 10
-            hum = frame[7] / 2
-            temp = frame[9] * 51 / 255
-            sqliteService.updateCo2(co2, hum, temp)
-            sqliteService.ventilationOnOff()
+        co2 = frame[8] * 10
+        hum = frame[7] / 2
+        temp = frame[9] * 51 / 255
+        sqliteService.updateCo2(co2, hum, temp)
+        sqliteService.ventilationOnOff()
 
 
 class CovProbe(Probe):
@@ -40,12 +37,9 @@ class CovProbe(Probe):
         return senderId == b'\xFF\xD5\xA8\x0F'
 
     def parse(self, sqliteService, frame):
-        if len(frame) < 24:
-            print("Invalid : To short frame !")
-        else:
-            cov = frame[7] + frame[8]
-            sqliteService.updateCov(cov)
-            sqliteService.ventilationOnOff()
+        cov = frame[7] + frame[8]
+        sqliteService.updateCov(cov)
+        sqliteService.ventilationOnOff()
 
 
 class PmProbe(Probe):
@@ -53,11 +47,8 @@ class PmProbe(Probe):
         return senderId == b'\xFF\xD5\xA8\x14'
 
     def parse(self, sqliteService, frame):
-        if len(frame) < 24:
-            print("Invalid : To short frame !")
-        else:
-            pm1 = frame[7] * 2 + frame[8] // 128
-            pm2 = (frame[8] * 4 + frame[9] // 64) & 511 # On applique un masque pour ne garder que les 9 octets de poids faible
-            pm10 = (frame[9] * 8 + frame[10] // 32) & 511 # On applique un masque pour ne garder que les 9 octets de poids faible
-            sqliteService.updatePm(pm1, pm2, pm10)
-            sqliteService.ventilationOnOff()
+        pm1 = frame[7] * 2 + frame[8] // 128
+        pm2 = (frame[8] * 4 + frame[9] // 64) & 511 # On applique un masque pour ne garder que les 9 octets de poids faible
+        pm10 = (frame[9] * 8 + frame[10] // 32) & 511 # On applique un masque pour ne garder que les 9 octets de poids faible
+        sqliteService.updatePm(pm1, pm2, pm10)
+        sqliteService.ventilationOnOff()
